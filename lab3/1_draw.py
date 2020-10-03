@@ -1,6 +1,7 @@
 import pygame
 from pygame.draw import *
 
+
 pygame.init()
 
 YELLOW = (255, 255, 0)
@@ -10,11 +11,13 @@ RED = (255, 0, 0)
 FPS = 30
 a = 500  # сторона квадратного окна в пикселях
 
+
+# жёлтый круг будущего лица и его обводка
 screen = pygame.display.set_mode((a, a))
-rect(screen, WHITE, (0, 0, a, a))
-circle(screen, YELLOW, (250, 250), 100)
-circle(screen, BLACK, (250, 250), 100, 1)
-rect(screen, BLACK, (200, 300, 100, 13))
+rect(screen, WHITE, (0, 0, a, a))           # заполняем весь экран белым
+circle(screen, YELLOW, (250, 250), 100)     # рисование самого круга
+circle(screen, BLACK, (250, 250), 100, 1)   # рисование обводки
+rect(screen, BLACK, (200, 300, 100, 13))    # рисование рта
 # правый глаз
 circle(screen, RED, (290, 220), 13)
 circle(screen, BLACK, (290, 220), 13, 1)
