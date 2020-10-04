@@ -1,5 +1,6 @@
 import pygame
 from pygame.draw import *
+from math import *
 
 
 def legs(screen: pygame.display, cord_x: int, cord_y: int, size: float,
@@ -8,18 +9,30 @@ def legs(screen: pygame.display, cord_x: int, cord_y: int, size: float,
 
 
 def eye(screen: pygame.display, cord_x: int, cord_y: int, size: float,
-        colour_eye_1: tuple, colour_eye_2: tuple):
-    pass
+        colour_body: tuple, colour_eye_1: tuple, colour_eye_2: tuple):
+    ellipse(screen, colour_eye_2,
+            ((cord_x + round(size * 64)) - round(size * 12), (cord_y - round(size * 128) - round(size * 10)),
+             round(size * 2*12), round(size * 2*10)))
+    ellipse(screen, colour_eye_1,
+            ((cord_x + round(size * 70) - round(size * 5), (cord_y - round(size * 129)) - round(size * 4),
+              round(size * 2*5), round(size * 2*4))))
+    surface = pygame.Surface((round(size * 12), round(size * 6)), pygame.SRCALPHA)
+    ellipse(surface, colour_body, (0, 0, round(size * 12), round(size * 6)))
+    surface_rot = pygame.transform.rotate(surface, -30)
+    screen.blit(surface_rot, (cord_x + round(size * 58), cord_y - round(size * 138)))
 
 
 def body(screen: pygame.display, cord_x: int, cord_y: int, size: float,
          colour_body: tuple):
     ellipse(screen, colour_body,
-            (cord_x - size * 68, cord_y - size * 32, size * 2*68, size * 2*32))
+            (cord_x - round(size * 68), cord_y - round(size * 32),
+             round(size * 2*68), round(size * 2*32)))
     ellipse(screen, colour_body,
-            ((cord_x + size * 57) - size * 19, (cord_y - size * 64) - size * 52, size * 2*19, size * 2*52))
+            ((cord_x + round(size * 57)) - round(size * 19), (cord_y - round(size * 64)) - round(size * 52),
+             round(size * 2*19), round(size * 2*52)))
     ellipse(screen, colour_body,
-            ((cord_x + size * 67) - size * 24, (cord_y - size * 124) - size * 16, size * 2*24, size * 2*16))
+            ((cord_x + round(size * 67)) - round(size * 24), (cord_y - round(size * 124)) - round(size * 16),
+             round(size * 2*24), round(size * 2*16)))
 
 
 def ears(screen: pygame.display, cord_x: int, cord_y: int, size: float,
@@ -30,8 +43,14 @@ def ears(screen: pygame.display, cord_x: int, cord_y: int, size: float,
 def llama(screen: pygame.display, cord_x: int, cord_y: int, size: float,
           colour_body: tuple, colour_eye_1: tuple, colour_eye_2: tuple):
     body(screen, cord_x, cord_y, size, colour_body)
+
     legs(screen, cord_x, cord_y, size, colour_body)
-    eye(screen, cord_x, cord_y, size, colour_eye_1, colour_eye_2)
+    legs(screen, cord_x, cord_y, size, colour_body)
+    legs(screen, cord_x, cord_y, size, colour_body)
+    legs(screen, cord_x, cord_y, size, colour_body)
+
+    eye(screen, cord_x, cord_y, size, colour_body, colour_eye_1, colour_eye_2)
+
     ears(screen, cord_x, cord_y, size, colour_body)
 
 
@@ -72,8 +91,6 @@ def main():
     # Рисование одной ламы в определённых координатах с определёнными линейными размерами (за единицу взяты размеры ламы
     # с боевого задания)
     llama(screen, 143, 593, 1, WHITE, BLACK, VIOLET)
-
-
 
     pygame.display.update()
     clock = pygame.time.Clock()
