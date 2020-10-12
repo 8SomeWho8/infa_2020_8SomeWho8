@@ -15,9 +15,29 @@ CYAN = (0, 255, 255)
 BLACK = (0, 0, 0)
 COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
+r_1 = randint(10, 100)
+x_1 = randint(r_1, 1200 - r_1)
+y_1 = randint(r_1, 900 - r_1)
+velocity_x_1 = randint(-60, 60)
+velocity_y_1 = randint(-60, 60)
+color_1 = COLORS[randint(0, 5)]
 
-def new_ball(t, dt):
-    global x, y, r, color, velocity_x, velocity_y
+r_2 = randint(10, 100)
+x_2 = randint(r_2, 1200 - r_2)
+y_2 = randint(r_2, 900 - r_2)
+velocity_x_2 = randint(-60, 60)
+velocity_y_2 = randint(-60, 60)
+color_2 = COLORS[randint(0, 5)]
+
+r_3 = randint(10, 100)
+x_3 = randint(r_3, 1200 - r_3)
+y_3 = randint(r_3, 900 - r_3)
+velocity_x_3 = randint(-60, 60)
+velocity_y_3 = randint(-60, 60)
+color_3 = COLORS[randint(0, 5)]
+
+
+def new_ball(x, y, r, velocity_x, velocity_y, color, t, dt):  #FIX ME
     if t == 0:
         r = randint(10, 100)
         x = randint(r, 1200 - r)
@@ -40,12 +60,14 @@ t = 0
 while not finished:
     clock.tick(FPS)
     screen.fill(BLACK)
-    new_ball(t, dt)
+    new_ball(x_1, y_1, r_1, velocity_x_1, velocity_y_1, color_1, t, dt)
+    new_ball(x_2, y_2, r_2, velocity_x_2, velocity_y_2, color_2, t, dt)
+    new_ball(x_3, y_3, r_3, velocity_x_3, velocity_y_3, color_3, t, dt)
     t += dt
-    if x + r >= 1200 or x - r <= 0:
-        velocity_x *= -1
-    if y - r <= 0 or y + r >= 900:
-        velocity_y *= -1
+    if x_1 + r_1 >= 1200 or x_1 - r_1 <= 0:
+        velocity_x_1 *= -1
+    if y_1 - r_1 <= 0 or y_1 + r_1 >= 900:
+        velocity_y_1 *= -1
     pygame.display.update()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
