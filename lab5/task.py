@@ -36,7 +36,7 @@ finished = False
 
 score = 0
 dt = 0.1
-t = -dt
+t = 0
 while not finished:
     clock.tick(FPS)
     screen.fill(BLACK)
