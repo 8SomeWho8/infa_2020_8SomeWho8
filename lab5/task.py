@@ -59,9 +59,30 @@ def ballz(dt: float, n: int, x: list, y: list, velocity_x: list, velocity_y: lis
         y[i] += velocity_y[i] * dt
 
 
-def ringz(t: list, x: list, y: list, n: int, r: list, x_0: list, y_0: list, a_x: list, a_y: list, hit: list,
-          color: list, freq: list):
+def ringz(t: list, n: int, x: list, y: list, x_0: list, y_0: list, a_x: list, a_y: list, r: list,
+          freq: list, color: list, hit: list):
+    """
+    This function draws ring at coordinates (x, y) and updates its coordinates for the next frame.
+    Rings are moving about the Lissajous figure with frequency ratio of 2:1.
+    To hit a ring user must click on the colourful part.
+    :param t: List of parameters of the current state of ring on the Lissajous figure
+    :param x: List of horizontal coordinates of the rings
+    :param y: List of vertical coordinates of the rings
+    :param n: Number of rings created
+    :param r: List of radii of rings
+    :param x_0: List of starting horizontal coordinates of Lissajous figures
+    :param y_0: List of starting vertical coordinates of Lissajous figures
+    :param a_x: List of horizontal amplitudes of Lissajous figures
+    :param a_y: List of vertical amplitudes of Lissajous figures
+    :param hit: List of
+    :param color: List of bool variables for each ring that is True if user has clicked on the ring
+                  and False if ring hasn't been clicked on.
+                  If this is True, function updates all variables of current ring.
+    :param freq: List of angular frequencies in formulas of Lissajous figures
+    :return:
+    """
     for i in range(n):
+        # Recreating variables of ring randomly if it was clicked on
         if hit[i]:
             a_x[i] = (randint(50, 200))
             a_y[i] = (randint(50, 200))
@@ -73,16 +94,18 @@ def ringz(t: list, x: list, y: list, n: int, r: list, x_0: list, y_0: list, a_x:
             color_2[i] = (COLORS[randint(0, 11)])
             freq[i] = random() * 0.4 + 0.3
             hit_2[i] = False
-            t[i] = 0
+            t[i] = 0  # Updating the variable of state of each ring
+        # Drawing a ring at current coordinates
         circle(screen, color[i], (round(x[i]), round(y[i])), r[i])
         circle(screen, BLACK, (round(x[i]), round(y[i])), r[i] - 7)
+        # Updating coordinates of ring
         x[i] = x_0[i] + a_x[i] * m.cos(freq[i] * t[i])
         y[i] = y_0[i] + a_y[i] * m.sin(2 * freq[i] * t[i])
 
 
 clock = pygame.time.Clock()
 finished = False
-n_1 = 0  # Number of circles created
+n_1 = 5  # Number of circles created
 r_1 = []  # List of radii of circles
 x_1 = []  # List of current horizontal coordinates of circles
 y_1 = []  # List of current vertical coordinates of circles
@@ -91,6 +114,7 @@ velocity_y_1 = []  # List of current vertical velocities of circles
 color_1 = []  # List of colours of circles
 hit_1 = []  # List of bool variables for each circle that is True if user has clicked on the circle
 # and False if circle hasn't been clicked on.
+dt = 0.1  # Step of time in drawing circles
 
 # Creating lists of variables of circles with random values
 for i in range(n_1):
@@ -102,6 +126,7 @@ for i in range(n_1):
     color_1.append(COLORS[randint(0, 11)])
     hit_1.append(False)
 
+
 n_2 = 5  # Number of rings created
 r_2 = []  # List of radii of rings
 x_2 = []  # List of current horizontal coordinates of rings
@@ -111,10 +136,12 @@ a_y = []  # List of vertical amplitudes of rings
 x_0 = []  # List of starting horizontal coordinates of rings
 y_0 = []  # List of starting vertical coordinates of rings
 color_2 = []  # List of colours of rings
-hit_2 = []  # List of bool variables for each ring that is True if user has clicked on the ring'
-t = []  # List of states of time for each ring
+hit_2 = []  # List of bool variables for each ring that is True if user has clicked on the ring
 # and False if ring hasn't been clicked on.
-freq = []
+t = []  # List of states of time for each ring
+freq = []  # List of angular frequencies for each ring
+
+# Creating lists of variables of rings with random values
 for i in range(n_2):
     a_x.append(randint(50, 200))
     a_y.append(randint(50, 200))
@@ -128,15 +155,23 @@ for i in range(n_2):
     hit_2.append(False)
     t.append(randint(0, 1))
 
+
 # Score of the game
 score = 0
-# Step of time in drawing circles
-dt = 0.1
+c_score = pygame.font.Font(None, 32)
+length_of_round = 20
 while not finished:
     clock.tick(FPS)
     screen.fill(BLACK)  # Filling the screen with black to redraw all picture
     ballz(dt, n_1, x_1, y_1, velocity_x_1, velocity_y_1, r_1, color_1, hit_1)  # Drawing circles on current positions
-    ringz(t, x_2, y_2, n_2, r_2, x_0, y_0, a_x, a_y, hit_2, color_2, freq)
+    ringz(t, n_2, x_2, y_2, x_0, y_0, a_x, a_y, r_2, freq, color_2, hit_2)  # Drawing rings on current positions
+    length_of_round -= 1/60
+    if length_of_round >= 0:
+        text = c_score.render("Score: " + str(score) +
+                              "  Time left: " + '{:.2f}'.format(round(length_of_round, 2)) + "s", 1, AMBER)
+    else:
+        text = c_score.render("Score: " + str(score) + "  Time left: 0.00s", 1, AMBER)
+    screen.blit(text, (0, 0))
     for i in range(n_2):
         t[i] += dt
     # Checking the position of circles relative to edges in order to change sign of horizontal or vertical velocity
@@ -147,20 +182,32 @@ while not finished:
         if y_1[i] - r_1[i] <= 0 or y_1[i] + r_1[i] >= 900:
             velocity_y_1[i] *= -1
     pygame.display.update()
+    if length_of_round <= 0:
+        finished = True
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
-        # Checking if user has clicked on a circle and changing the value of hit[] of clicked circle
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            # Checking if user has clicked on a circle and changing the value of hit_1[] of clicked circle
             for i in range(n_1):
                 if (event.pos[0] - x_1[i]) ** 2 + (event.pos[1] - y_1[i]) ** 2 <= r_1[i] ** 2:
                     hit_1[i] = True
                     score += 1  # Adding one point for one clicked circle
+            # Checking if user has clicked on a ring and changing the value of hit_2[] of clicked ring
             for i in range(n_2):
                 if r_2[i] ** 2 >= (event.pos[0] - x_2[i]) ** 2 + (event.pos[1] - y_2[i]) ** 2 >= (r_2[i] - 7) ** 2:
                     hit_2[i] = True
                     score += 10
 
-
-print(score)
+screen.fill(LILAC)
+f_score = pygame.font.Font(None, 100)
+text2 = f_score.render("Your score is: " + str(score), 1, AMBER)
+screen.blit(text2, (350, 400))
+pygame.display.update()
+finished = False
+while not finished:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            finished = True
 pygame.quit()
+
