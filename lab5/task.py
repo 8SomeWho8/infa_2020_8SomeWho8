@@ -107,6 +107,9 @@ nickname = input()
 
 pygame.init()
 
+pygame.mixer.music.load('Beethoven - Moonlight Sonata (3rd Movement).mp3')
+pygame.mixer.music.play(loops=-1)
+
 FPS = 60
 screen = pygame.display.set_mode((1200, 900))
 n_1 = 5  # Number of circles created
@@ -225,7 +228,7 @@ else:
             if score < list_of_scores[i]:
                 i_sup = i
     for i in range(len(s)):  # Deleting old positions for every player in top 10, for example "4. "
-        s[i] = s[i][3:]
+        s[i] = s[i][3 + i // 10:]
     s.insert(i_sup + 1, nickname + ' ' + str(score) + '\n')  # Adding player's result to top10 massive
     for i in range(len(s)):  # Adding new positions for every player in top 10
         s[i] = str(i + 1) + '. ' + s[i]
