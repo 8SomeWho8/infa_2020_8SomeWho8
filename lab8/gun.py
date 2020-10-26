@@ -3,8 +3,6 @@ import tkinter as tk
 import math
 import time
 
-# print (dir(math))
-
 root = tk.Tk()
 fr = tk.Frame(root)
 root.geometry('800x600')
@@ -53,7 +51,7 @@ class ball():
         self.vx = 0
         self.vy = 0
         self.ax = 0
-        self.ay = -30
+        self.ay = -1
         self.color = choice(['blue', 'green', 'red', 'brown'])
         self.id = canv.create_oval(
             self.x - self.r,
@@ -71,6 +69,12 @@ class ball():
         self.x и self.y с учетом скоростей self.vx и self.vy, силы гравитации, действующей на мяч,
         и стен по краям окна (размер окна 800х600).
         """
+        if self.x > 800:
+            self.vx *= -1
+        if self.y > 600 - self.r - 5:
+            self.vy *= -1
+        self.vx += self.ax
+        self.vy += self.ay
         self.x += self.vx
         self.y -= self.vy
         canv.coords(
@@ -175,7 +179,7 @@ def new_game(event=''):
         g1.power_up()
     canv.itemconfig(screen1, text='')
     canv.delete(g1)
-    root.after(20, new_game)
+    root.after(20, new_game())
 
 
 new_game()
