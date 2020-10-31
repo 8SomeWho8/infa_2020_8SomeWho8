@@ -12,10 +12,8 @@ canv.pack(fill=tk.BOTH, expand=1)
 
 class target():
     def __init__(self):
-        self.points = 0
         self.live = 1
         self.id = canv.create_oval(0, 0, 0, 0)
-        self.id_points = canv.create_text(30, 30, text=self.points, font='28')
         self.x = rnd(600, 780)
         self.y = rnd(300, 550)
         self.r = rnd(2, 50)
@@ -23,23 +21,21 @@ class target():
         canv.coords(self.id, self.x - self.r, self.y - self.r, self.x + self.r, self.y + self.r)
         canv.itemconfig(self.id, fill=self.color)
 
-    '''def new_target(self):
+    def new_target(self, x_min=600, x_max=800, y_min=300, y_max=550):
         """ Инициализация новой цели. """
-        self.x = rnd(600, 780)
-        self.y = rnd(300, 550)
-        self.r = rnd(2, 50)
+        self.r = rnd(5, 50)
+        self.x = rnd(x_min + self.r, x_max - self.r)
+        self.y = rnd(y_min + self.r, y_max - self.r)
         canv.coords(self.id, self.x - self.r, self.y - self.r, self.x + self.r, self.y + self.r)
-        canv.itemconfig(self.id, fill=self.color)'''
+        canv.itemconfig(self.id, fill=self.color)
 
     def hit(self):
         """Попадание шарика в цель."""
         canv.coords(self.id, -10, -10, -10, -10)
-        self.points += 1
-        canv.itemconfig(self.id_points, text=self.points)
 
 
 class ball():
-    def __init__(self, x=40, y=450, ):
+    def __init__(self, x=40, y=450):
         """ Конструктор класса ball
         Args:
         x - начальное положение мяча по горизонтали
@@ -51,7 +47,7 @@ class ball():
         self.vx = 0
         self.vy = 0
         self.ax = 0
-        self.ay = -1
+        self.ay = 1
         self.color = choice(['blue', 'green', 'red', 'brown'])
         self.id = canv.create_oval(
             self.x - self.r,
@@ -69,14 +65,24 @@ class ball():
         self.x и self.y с учетом скоростей self.vx и self.vy, силы гравитации, действующей на мяч,
         и стен по краям окна (размер окна 800х600).
         """
-        if self.x > 800:
-            self.vx *= -1
-        if self.y > 600 - self.r - 5:
-            self.vy *= -1
-        self.vx += self.ax
-        self.vy += self.ay
-        self.x += self.vx
-        self.y -= self.vy
+        if abs(self.vx) > 1e-1:
+            self.vx += self.ax
+            if self.x + self.vx > 800 - self.r:
+                self.x = 2 * (800 - self.r) - self.x - self.vx
+                self.vy *= 0.7
+                self.vx *= -0.7
+            else:
+                self.x += self.vx
+        if abs(self.vx) > 1e-1 or self.y - self.r >= 600:
+            self.vy += self.ay
+            if self.y + self.vy > 600 - self.r:
+                self.y = 2 * (600 - self.r) - self.y - self.vy
+                self.vy *= -0.5
+                self.vx *= 0.5
+            else:
+                self.y += self.vy
+        else:
+            self.y = 600 - self.r - 3
         canv.coords(
             self.id,
             self.x - self.r,
@@ -121,7 +127,7 @@ class gun():
         new_ball.r += 5
         self.an = math.atan((event.y - new_ball.y) / (event.x - new_ball.x))
         new_ball.vx = self.f2_power * math.cos(self.an)
-        new_ball.vy = - self.f2_power * math.sin(self.an)
+        new_ball.vy = self.f2_power * math.sin(self.an)
         balls += [new_ball]
         self.f2_on = 0
         self.f2_power = 10
@@ -149,30 +155,52 @@ class gun():
 
 
 t1 = target()
+t2 = target()
 screen1 = canv.create_text(400, 300, text='', font='28')
 g1 = gun()
 bullet = 0
+points = 0
+id_points = canv.create_text(30, 30, text=points, font='28')
+canv.itemconfig(id_points, text=points)
 balls = []
 
 
 def new_game(event=''):
-    global g1, t1, screen1, balls, bullet
+    global g1, t1, screen1, balls, bullet, points
+    t1.new_target()
+    t2.new_target()
+    while ((t1.x - t2.x)**2 + (t1.y - t2.y)**2)**0.5 <= t1.r + t2.r:
+        t2.new_target()
     bullet = 0
     balls = []
     canv.bind('<Button-1>', g1.fire2_start)
     canv.bind('<ButtonRelease-1>', g1.fire2_end)
     canv.bind('<Motion>', g1.targetting)
-    z = 0.03
+    z = 0.01
     t1.live = 1
+    t2.live = 1
     while t1.live or balls:
         for b in balls:
             b.move()
             if b.hittest(t1) and t1.live:
                 t1.live = 0
+                points += 1
+                canv.itemconfig(id_points, text=points)
                 t1.hit()
+            if b.hittest(t2) and t2.live:
+                t2.live = 0
+                points += 1
+                canv.itemconfig(id_points, text=points)
+                t2.hit()
+            if not t1.live and not t2.live:
                 canv.bind('<Button-1>', '')
                 canv.bind('<ButtonRelease-1>', '')
-                canv.itemconfig(screen1, text='Вы уничтожили цель за ' + str(bullet) + ' выстрелов')
+                canv.itemconfig(screen1, text='Вы уничтожили цели за ' + str(bullet) + ' выстрелов')
+            if b.y == 600 - b.r - 3:
+                b.live -= 1
+            if b.live == 0:
+                canv.delete(b.id)
+                balls.remove(b)
         canv.update()
         time.sleep(z)
         g1.targetting()
