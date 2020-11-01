@@ -14,10 +14,12 @@ class target():
     def __init__(self):
         self.live = 1
         self.id = canv.create_oval(0, 0, 0, 0)
-        self.x = rnd(600, 780)
-        self.y = rnd(300, 550)
-        self.r = rnd(2, 50)
-        self.color = 'red'
+        self.x = 0
+        self.y = 0
+        self.vx = 0
+        self.vy = 0
+        self.r = 0
+        self.color = '#ccff00'
         canv.coords(self.id, self.x - self.r, self.y - self.r, self.x + self.r, self.y + self.r)
         canv.itemconfig(self.id, fill=self.color)
 
@@ -26,8 +28,35 @@ class target():
         self.r = rnd(5, 50)
         self.x = rnd(x_min + self.r, x_max - self.r)
         self.y = rnd(y_min + self.r, y_max - self.r)
+        self.vx = rnd(-10, 10)
+        self.vy = rnd(-10, 10)
         canv.coords(self.id, self.x - self.r, self.y - self.r, self.x + self.r, self.y + self.r)
         canv.itemconfig(self.id, fill=self.color)
+
+    def move(self):
+        if self.x + self.vx > 800 - self.r:
+            self.x = 2 * (800 - self.r) - self.x - self.vx
+            self.vx *= -1
+        elif self.x + self.vx < 0 + self.r:
+            self.x = 2 * self.r - self.x - self.vx
+            self.vx *= -1
+        else:
+            self.x += self.vx
+        if self.y + self.vy > 600 - self.r:
+            self.y = 2 * (600 - self.r) - self.y - self.vy
+            self.vy *= -1
+        elif self.y + self.vy < 0 + self.r:
+            self.y = 2 * self.r - self.y - self.vy
+            self.vy *= -1
+        else:
+            self.y += self.vy
+        canv.coords(
+            self.id,
+            self.x - self.r,
+            self.y - self.r,
+            self.x + self.r,
+            self.y + self.r
+        )
 
     def hit(self):
         """Попадание шарика в цель."""
@@ -48,7 +77,7 @@ class ball():
         self.vy = 0
         self.ax = 0
         self.ay = 1
-        self.color = choice(['blue', 'green', 'red', 'brown'])
+        self.color = choice(['red', '#ff7f50', 'blue', 'green', '#b666d2', 'yellow', 'cyan', '#ffbf00', '#711919'])
         self.id = canv.create_oval(
             self.x - self.r,
             self.y - self.r,
@@ -179,7 +208,7 @@ def new_game(event=''):
     z = 0.01
     t1.live = 1
     t2.live = 1
-    while t1.live or balls:
+    while t1.live or t2.live or balls:
         for b in balls:
             b.move()
             if b.hittest(t1) and t1.live:
@@ -201,6 +230,10 @@ def new_game(event=''):
             if b.live == 0:
                 canv.delete(b.id)
                 balls.remove(b)
+        if t1.live:
+            t1.move()
+        if t2.live:
+            t2.move()
         canv.update()
         time.sleep(z)
         g1.targetting()
