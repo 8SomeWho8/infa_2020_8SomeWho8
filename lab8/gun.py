@@ -8,6 +8,7 @@ fr = tk.Frame(root)
 root.geometry('800x600')
 canv = tk.Canvas(root, bg='white')
 canv.pack(fill=tk.BOTH, expand=1)
+canv.focus_set()
 
 
 class target():
@@ -165,14 +166,16 @@ class gun():
         # Переменная, показывающая, начата ли подготовка перед выстрелом или нет
         self.f2_on = 0
         # Координаты пушки в начале игры
-        self.x = 40
-        self.y = 450
+        self.x = 50
+        self.y = 550
         # Переменная скорости горизонтального движения пушки
         self.v = 1
         # Переменная угла наклона пушки к горизонтали(со знаком)
         self.an = 1
         # Объект "линии" из tkinter
-        self.id = canv.create_line(20, 450, 50, 420, width=7)
+        self.barrel = canv.create_line(self.x, self.y, self.x + 20, self.y + 20, width=7)
+        self.body = canv.create_rectangle(self.x - 50, self.y + 10, self.x + 50, self.y + 30,
+                                          outline='black', fill='black')
 
     def fire2_start(self, event=''):  # Начало подготовки к выстрелу, в течении которой f2_power растёт
         self.f2_on = 1
@@ -191,10 +194,14 @@ class gun():
         new_ball.x = self.x
         new_ball.y = self.y
         # Вычисление угла наклона пушки, зависит от положения мыши
-        if (event.x - new_ball.x) > 0:
-            self.an = math.atan((event.y - new_ball.y) / (event.x - new_ball.x))
+        if (event.x - self.x) > 0:
+            self.an = math.atan((event.y - self.y) / (event.x - self.x))
+        elif event.x == self.x and event.y > self.y:
+            self.an = math.pi / 2
+        elif event.x == self.x and event.y < self.y:
+            self.an = - math.pi / 2
         else:
-            self.an = math.pi - math.atan((event.y - new_ball.y) / (event.x - new_ball.x))
+            self.an = math.pi + math.atan((event.y - self.y) / (event.x - self.x))
         # Задание начальных скоростей снаряда по осям, пропорционально силе f2_power
         new_ball.vx = self.f2_power * math.cos(self.an)
         new_ball.vy = self.f2_power * math.sin(self.an)
@@ -205,31 +212,77 @@ class gun():
     def targetting(self, event=0):
         """Прицеливание. Зависит от положения мыши."""
         if event:  # Вычисление угла наклона пушки к вертикали
-            self.an = math.atan((event.y - 450) / (event.x - 20))
+            if (event.x - self.x) > 0:
+                self.an = math.atan((event.y - self.y) / (event.x - self.x))
+            elif event.x == self.x and event.y > self.y:
+                self.an = math.pi / 2
+            elif event.x == self.x and event.y < self.y:
+                self.an = - math.pi / 2
+            else:
+                self.an = math.pi + math.atan((event.y - self.y) / (event.x - self.x))
         if self.f2_on:  # Рисование оранжевой пушки, если идёт подготовка к выстрелу
-            canv.itemconfig(self.id, fill='orange')
+            canv.itemconfig(self.barrel, fill='orange')
         else:  # Рисование чёрной пушки в обратном случае
-            canv.itemconfig(self.id, fill='black')
+            canv.itemconfig(self.barrel, fill='black')
         # Обновление координат объекта пушки из tkinter, длина пушки зависит от f2_power
-        canv.coords(self.id, 20, 450,
-                    20 + max(self.f2_power, 20) * math.cos(self.an),
-                    450 + max(self.f2_power, 20) * math.sin(self.an)
+        canv.coords(self.barrel, self.x, self.y,
+                    self.x + max(self.f2_power, 20) * math.cos(self.an),
+                    self.y + max(self.f2_power, 20) * math.sin(self.an)
                     )
 
     def power_up(self):
         """
         Увеличение f2_power по мере подготовки к выстрелу, с ограничением сверху в 100 условных пунктов
         """
-        # Смена цвета пушки в случае, если она не готовится к выстрелу
+        # Смена цвета пушки в случае, если она готовится к выстрелу
         if self.f2_on:
             if self.f2_power < 100:
                 self.f2_power += 1
-            canv.itemconfig(self.id, fill='orange')
+            canv.itemconfig(self.barrel, fill='orange')
         else:
-            canv.itemconfig(self.id, fill='black')
+            canv.itemconfig(self.barrel, fill='black')
 
-    def move(self):
-        pass
+    def move_right(self, event=''):
+        """
+        Передвижение пушки вправо по горизонтали
+        """
+        if self.x <= 780:
+            self.x += self.v
+        canv.coords(
+            self.barrel,
+            self.x,
+            self.y,
+            self.x,
+            self.y
+        )
+        canv.coords(
+            self.body,
+            self.x - 50,
+            self.y - 10,
+            self.x + 50,
+            self.y + 30,
+        )
+
+    def move_left(self, event=''):
+        """
+        Передвижение пушки влево по горизонтали
+        """
+        if self.x > 20:
+            self.x -= self.v
+        canv.coords(
+            self.barrel,
+            self.x,
+            self.y,
+            self.x,
+            self.y
+        )
+        canv.coords(
+            self.body,
+            self.x - 50,
+            self.y - 10,
+            self.x + 50,
+            self.y + 30,
+        )
 
 
 # Создание двух экземпляров класса target
@@ -265,8 +318,11 @@ def new_game():
     canv.bind('<Button-1>', g1.fire2_start)
     # Связь отпускания левой кнопки мыши с функцией выстрела
     canv.bind('<ButtonRelease-1>', g1.fire2_end)
-    # Связть движения мыши с функцией прицеливания
+    # Связь движения мыши с функцией прицеливания
     canv.bind('<Motion>', g1.targetting)
+    # Связь нажатия стрелок на клавиатуре с движением пушки по горизонтали
+    canv.bind('<Right>', g1.move_right)
+    canv.bind('<Left>', g1.move_left)
     # Задание переменной, отвечающей за время ожидания между отрисовками последовательных кадров
     z = 1/60
     # Восстановление переменных жизни целей
@@ -277,7 +333,7 @@ def new_game():
         for b in balls:  # Действия для всех шариков из массива со всеми "живыми" шариками
             b.move()  # Передвижение шарика за одну единицу времени
             # Проверка столкновения шариков с целями, добавление очков за поражение целей,
-            # обновление переменной жизни целей, удаление поражённых целей
+            # обновление переменной жизни целей, а также удаление поражённых целей
             if b.hittest(t1) and t1.live:
                 t1.live = 0
                 points += 1
@@ -290,7 +346,7 @@ def new_game():
                 t2.hit()
             # Условие "прекращения огня" для вывода результатов уничтожения мишеней
             if not t1.live and not t2.live:
-                # Привязывание кликов мыши к пустым событиям для отсутсвия шариков между играми
+                # Привязывание кликов мыши к пустым событиям для отсутствия шариков между играми
                 canv.bind('<Button-1>', '')
                 canv.bind('<ButtonRelease-1>', '')
                 canv.itemconfig(screen1, text='Вы уничтожили цели за ' + str(bullet) + ' выстрелов')
@@ -299,6 +355,7 @@ def new_game():
             if b.live == 0:  # Удаление "мёртвых" шариков с полотна и из массива "живых" шариков
                 canv.delete(b.id)
                 balls.remove(b)
+
         # Проверка условия жизни мишени и перемещение живых мишеней
         if t1.live:
             t1.move()
@@ -312,7 +369,7 @@ def new_game():
     # Стирание текста о количестве потраченных шариков перед новой игрой
     canv.itemconfig(screen1, text='')
     canv.delete(g1)
-    root.after(20, new_game())  # Вызов функции new_game для старта новой игры по окочании текущей
+    root.after(20, new_game())  # Вызов функции new_game для старта новой игры по окончании текущей
 
 
 new_game()
