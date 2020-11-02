@@ -164,12 +164,17 @@ class gun():
         self.f2_power = 10
         # Переменная, показывающая, начата ли подготовка перед выстрелом или нет
         self.f2_on = 0
+        # Координаты пушки в начале игры
+        self.x = 40
+        self.y = 450
+        # Переменная скорости горизонтального движения пушки
+        self.v = 1
         # Переменная угла наклона пушки к горизонтали(со знаком)
         self.an = 1
         # Объект "линии" из tkinter
         self.id = canv.create_line(20, 450, 50, 420, width=7)
 
-    def fire2_start(self, event = ''):  # Начало подготовки к выстрелу, в течении которой f2_power растёт
+    def fire2_start(self, event=''):  # Начало подготовки к выстрелу, в течении которой f2_power растёт
         self.f2_on = 1
 
     def fire2_end(self, event):
@@ -182,8 +187,14 @@ class gun():
         bullet += 1  # Количество потраченных шариков
         new_ball = ball()  # Будущий снаряд
         new_ball.r += 5
-        self.an = math.atan((event.y - new_ball.y) / (event.x - new_ball.x))  # Вычисление угла наклона пушки,
-        # зависит от положения мыши
+        # Задание начальных координат нового снаряда как координат пушки в момент выстрела
+        new_ball.x = self.x
+        new_ball.y = self.y
+        # Вычисление угла наклона пушки, зависит от положения мыши
+        if (event.x - new_ball.x) > 0:
+            self.an = math.atan((event.y - new_ball.y) / (event.x - new_ball.x))
+        else:
+            self.an = math.pi - math.atan((event.y - new_ball.y) / (event.x - new_ball.x))
         # Задание начальных скоростей снаряда по осям, пропорционально силе f2_power
         new_ball.vx = self.f2_power * math.cos(self.an)
         new_ball.vy = self.f2_power * math.sin(self.an)
@@ -216,6 +227,9 @@ class gun():
             canv.itemconfig(self.id, fill='orange')
         else:
             canv.itemconfig(self.id, fill='black')
+
+    def move(self):
+        pass
 
 
 # Создание двух экземпляров класса target
