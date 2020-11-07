@@ -184,9 +184,11 @@ class gun():
         self.barrel = canv.create_line(self.x, self.y,
                                        self.x + 25 * math.cos(math.pi/4), self.y + 25 * math.sin(math.pi/4),
                                        width=7)
+        self.body_colour = choice(['red', '#ff7f50', 'blue', 'green', '#b666d2',
+                                          'yellow', 'cyan', '#ffbf00', '#711919'])
         self.body = canv.create_rectangle(self.x - self.body_length / 2, self.y - 2,
                                           self.x + self.body_length / 2, self.y + self.body_height,
-                                          outline='black', fill='orange')
+                                          outline='black', fill=self.body_colour)
         self.left_wheel = canv.create_oval(self.x - self.body_length / 4 - self.right_wheel_rad,
                                            self.y + self.body_height,
                                            self.x - self.body_length / 4 + self.right_wheel_rad,
@@ -215,16 +217,16 @@ class gun():
         new_ball.x = self.x
         new_ball.y = self.y
         # Вычисление угла наклона пушки, зависит от положения мыши
-        if (event.x - self.x) > 0:
+        if (event.x - self.x) > 0 and (event.y - self.y < -0.3 * (event.x - self.x)):
             self.an = math.atan((event.y - self.y) / (event.x - self.x))
-        elif event.x == self.x and event.y > self.y:
-            self.an = math.pi / 2
-        elif event.x == self.x and event.y < self.y:
-            self.an = - math.pi / 2
-        elif event.x == self.x and event.y == self.y:
-            self.an = math.pi / 4
-        else:
+        elif (event.x - self.x) > 0 and (event.y - self.y >= -0.3 * (event.x - self.x)):
+            self.an = math.atan(-0.3)
+        elif (event.x - self.x) < 0 and (event.y - self.y < 0.3 * (event.x - self.x)):
             self.an = math.pi + math.atan((event.y - self.y) / (event.x - self.x))
+        elif (event.x - self.x) < 0 and (event.y - self.y >= 0.3 * (event.x - self.x)):
+            self.an = math.pi + math.atan(0.3)
+        elif (event.x == self.x) and self.y >= event.y:
+            self.an = -math.pi / 2
         # Задание начальных скоростей снаряда по осям, пропорционально силе f2_power
         new_ball.vx = self.f2_power * math.cos(self.an)
         new_ball.vy = self.f2_power * math.sin(self.an)
@@ -235,16 +237,18 @@ class gun():
     def targetting(self, event=0):
         """Прицеливание. Зависит от положения мыши."""
         if event:  # Вычисление угла наклона пушки к вертикали
-            if (event.x - self.x) > 0:
+            if (event.x - self.x) > 0 and (event.y - self.y < -0.3 * (event.x - self.x)):
                 self.an = math.atan((event.y - self.y) / (event.x - self.x))
-            elif event.x == self.x and event.y > self.y:
-                self.an = math.pi / 2
-            elif event.x == self.x and event.y < self.y:
-                self.an = - math.pi / 2
-            elif event.x == self.x and event.y == self.y:
-                self.an = math.pi / 4
-            else:
+            elif (event.x - self.x) > 0 and (event.y - self.y >= -0.3 * (event.x - self.x)):
+                self.an = math.atan(-0.3)
+            elif (event.x - self.x) < 0 and (event.y - self.y < 0.3 * (event.x - self.x)):
                 self.an = math.pi + math.atan((event.y - self.y) / (event.x - self.x))
+            elif (event.x - self.x) < 0 and (event.y - self.y >= 0.3 * (event.x - self.x)):
+                self.an = math.pi + math.atan(0.3)
+            elif (event.x == self.x) and self.y >= event.y:
+                self.an = -math.pi/2
+            '''else:
+                self.an = math.pi + math.atan((event.y - self.y) / (event.x - self.x))'''
         if self.f2_on:  # Рисование оранжевой пушки, если идёт подготовка к выстрелу
             canv.itemconfig(self.barrel, fill='orange')
         else:  # Рисование чёрной пушки в обратном случае
