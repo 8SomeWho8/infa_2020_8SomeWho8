@@ -188,7 +188,7 @@ class gun():
                                           'yellow', 'cyan', '#ffbf00', '#711919'])
         self.body = canv.create_rectangle(self.x - self.body_length / 2, self.y - 2,
                                           self.x + self.body_length / 2, self.y + self.body_height,
-                                          outline='black', fill=self.body_colour)
+                                          fill=self.body_colour)
         self.left_wheel = canv.create_oval(self.x - self.body_length / 4 - self.right_wheel_rad,
                                            self.y + self.body_height,
                                            self.x - self.body_length / 4 + self.right_wheel_rad,
@@ -247,8 +247,6 @@ class gun():
                 self.an = math.pi + math.atan(0.3)
             elif (event.x == self.x) and self.y >= event.y:
                 self.an = -math.pi/2
-            '''else:
-                self.an = math.pi + math.atan((event.y - self.y) / (event.x - self.x))'''
         if self.f2_on:  # Рисование оранжевой пушки, если идёт подготовка к выстрелу
             canv.itemconfig(self.barrel, fill='orange')
         else:  # Рисование чёрной пушки в обратном случае
@@ -281,8 +279,8 @@ class gun():
             self.barrel,
             self.x,
             self.y,
-            self.x,
-            self.y
+            self.x + max(self.f2_power * 5 / 18 + 200 / 9, 25) * math.cos(self.an),
+            self.y + max(self.f2_power * 5 / 18 + 200 / 9, 25) * math.sin(self.an)
         )
         canv.coords(
             self.body,
@@ -316,8 +314,8 @@ class gun():
             self.barrel,
             self.x,
             self.y,
-            self.x,
-            self.y
+            self.x + max(self.f2_power * 5 / 18 + 200 / 9, 25) * math.cos(self.an),
+            self.y + max(self.f2_power * 5 / 18 + 200 / 9, 25) * math.sin(self.an)
         )
         canv.coords(
             self.body,
@@ -357,6 +355,10 @@ id_points = canv.create_text(30, 30, text=points, font='28')
 canv.itemconfig(id_points, text=points)
 # Создание глобального массива с "живыми" шариками
 balls = []
+
+
+def MouseCords(event):
+    return (event.x, event.y)
 
 
 def new_game():
@@ -421,6 +423,8 @@ def new_game():
         canv.update()
         # Задержка между кадрами
         time.sleep(z)
+        g1.move_right
+        g1.move_left
         g1.targetting()
         g1.power_up()
     # Стирание текста о количестве потраченных шариков перед новой игрой
