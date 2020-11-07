@@ -32,7 +32,7 @@ class target():
         canv.coords(self.id, self.x - self.r, self.y - self.r, self.x + self.r, self.y + self.r)
         canv.itemconfig(self.id, fill=self.color)
 
-    def new_target(self, x_min=600, x_max=800, y_min=300, y_max=550):
+    def new_target(self, x_min=0, x_max=800, y_min=0, y_max=600):
         """ Инициализация новой цели с новыми случайными координатами, скоростями и радиусом. """
         self.r = rnd(5, 50)
         self.x = rnd(x_min + self.r, x_max - self.r)
@@ -77,7 +77,7 @@ class target():
 
 
 class ball():
-    def __init__(self, x=40, y=450):
+    def __init__(self, x=-40, y=0):
         """ Конструктор класса ball
         Args:
         x - начальное положение мяча по горизонтали
@@ -121,7 +121,7 @@ class ball():
                 self.vx *= -0.7
             else:
                 self.x += self.vx
-        if abs(self.vx) > 1e-1 or self.y - self.r >= 600:  # условие остановки по оси у
+        if abs(self.vx) > 1e-1 or self.y + self.r < 597:  # условие остановки по оси у
             self.vy += self.ay
             if self.y + self.vy > 600 - self.r:  # условие отражения от "пола"
                 self.y = 2 * (600 - self.r) - self.y - self.vy
@@ -167,15 +167,36 @@ class gun():
         self.f2_on = 0
         # Координаты пушки в начале игры
         self.x = 50
-        self.y = 550
+        self.y = 570
         # Переменная скорости горизонтального движения пушки
-        self.v = 1
+        self.v = 5
         # Переменная угла наклона пушки к горизонтали(со знаком)
         self.an = 1
         # Объект "линии" из tkinter
-        self.barrel = canv.create_line(self.x, self.y, self.x + 20, self.y + 20, width=7)
-        self.body = canv.create_rectangle(self.x - 50, self.y + 10, self.x + 50, self.y + 30,
-                                          outline='black', fill='black')
+        self.body_length = 40
+        self.body_height = 15
+        self.right_wheel_rad = 6
+        self.right_wheel_colour = choice(['red', '#ff7f50', 'blue', 'green', '#b666d2',
+                                          'yellow', 'cyan', '#ffbf00', '#711919'])
+        self.left_wheel_rad = 6
+        self.left_wheel_colour = choice(['red', '#ff7f50', 'blue', 'green', '#b666d2',
+                                         'yellow', 'cyan', '#ffbf00', '#711919'])
+        self.barrel = canv.create_line(self.x, self.y,
+                                       self.x + 25 * math.cos(math.pi/4), self.y + 25 * math.sin(math.pi/4),
+                                       width=7)
+        self.body = canv.create_rectangle(self.x - self.body_length / 2, self.y - 2,
+                                          self.x + self.body_length / 2, self.y + self.body_height,
+                                          outline='black', fill='orange')
+        self.left_wheel = canv.create_oval(self.x - self.body_length / 4 - self.right_wheel_rad,
+                                           self.y + self.body_height,
+                                           self.x - self.body_length / 4 + self.right_wheel_rad,
+                                           self.y + self.body_height + 2 * self.right_wheel_rad,
+                                           fill=self.right_wheel_colour)
+        self.right_wheel = canv.create_oval(self.x + self.body_length / 4 - self.left_wheel_rad,
+                                            self.y + self.body_height,
+                                            self.x + self.body_length / 4 + self.left_wheel_rad,
+                                            self.y + self.body_height + 2 * self.left_wheel_rad,
+                                            fill=self.left_wheel_colour)
 
     def fire2_start(self, event=''):  # Начало подготовки к выстрелу, в течении которой f2_power растёт
         self.f2_on = 1
@@ -200,6 +221,8 @@ class gun():
             self.an = math.pi / 2
         elif event.x == self.x and event.y < self.y:
             self.an = - math.pi / 2
+        elif event.x == self.x and event.y == self.y:
+            self.an = math.pi / 4
         else:
             self.an = math.pi + math.atan((event.y - self.y) / (event.x - self.x))
         # Задание начальных скоростей снаряда по осям, пропорционально силе f2_power
@@ -218,6 +241,8 @@ class gun():
                 self.an = math.pi / 2
             elif event.x == self.x and event.y < self.y:
                 self.an = - math.pi / 2
+            elif event.x == self.x and event.y == self.y:
+                self.an = math.pi / 4
             else:
                 self.an = math.pi + math.atan((event.y - self.y) / (event.x - self.x))
         if self.f2_on:  # Рисование оранжевой пушки, если идёт подготовка к выстрелу
@@ -226,8 +251,8 @@ class gun():
             canv.itemconfig(self.barrel, fill='black')
         # Обновление координат объекта пушки из tkinter, длина пушки зависит от f2_power
         canv.coords(self.barrel, self.x, self.y,
-                    self.x + max(self.f2_power, 20) * math.cos(self.an),
-                    self.y + max(self.f2_power, 20) * math.sin(self.an)
+                    self.x + max(self.f2_power * 5 / 18 + 200 / 9, 25) * math.cos(self.an),
+                    self.y + max(self.f2_power * 5 / 18 + 200 / 9, 25) * math.sin(self.an)
                     )
 
     def power_up(self):
@@ -246,7 +271,7 @@ class gun():
         """
         Передвижение пушки вправо по горизонтали
         """
-        if self.x <= 780:
+        if self.x < 780:
             self.x += self.v
         canv.coords(
             self.barrel,
@@ -257,10 +282,24 @@ class gun():
         )
         canv.coords(
             self.body,
-            self.x - 50,
-            self.y - 10,
-            self.x + 50,
-            self.y + 30,
+            self.x - self.body_length / 2,
+            self.y - 2,
+            self.x + self.body_length / 2,
+            self.y + self.body_height,
+        )
+        canv.coords(
+            self.left_wheel,
+            self.x - self.body_length / 4 - self.right_wheel_rad,
+            self.y + self.body_height,
+            self.x - self.body_length / 4 + self.right_wheel_rad,
+            self.y + self.body_height + 2 * self.right_wheel_rad,
+        )
+        canv.coords(
+            self.right_wheel,
+            self.x + self.body_length / 4 - self.left_wheel_rad,
+            self.y + self.body_height,
+            self.x + self.body_length / 4 + self.left_wheel_rad,
+            self.y + self.body_height + 2 * self.left_wheel_rad,
         )
 
     def move_left(self, event=''):
@@ -278,10 +317,24 @@ class gun():
         )
         canv.coords(
             self.body,
-            self.x - 50,
-            self.y - 10,
-            self.x + 50,
-            self.y + 30,
+            self.x - self.body_length / 2,
+            self.y - 2,
+            self.x + self.body_length / 2,
+            self.y + self.body_height,
+        )
+        canv.coords(
+            self.left_wheel,
+            self.x - self.body_length / 4 - self.right_wheel_rad,
+            self.y + self.body_height,
+            self.x - self.body_length / 4 + self.right_wheel_rad,
+            self.y + self.body_height + 2 * self.right_wheel_rad,
+        )
+        canv.coords(
+            self.right_wheel,
+            self.x + self.body_length / 4 - self.left_wheel_rad,
+            self.y + self.body_height,
+            self.x + self.body_length / 4 + self.left_wheel_rad,
+            self.y + self.body_height + 2 * self.left_wheel_rad,
         )
 
 
@@ -321,10 +374,10 @@ def new_game():
     # Связь движения мыши с функцией прицеливания
     canv.bind('<Motion>', g1.targetting)
     # Связь нажатия стрелок на клавиатуре с движением пушки по горизонтали
-    canv.bind('<Right>', g1.move_right)
-    canv.bind('<Left>', g1.move_left)
+    canv.bind('<d>', g1.move_right)
+    canv.bind('<a>', g1.move_left)
     # Задание переменной, отвечающей за время ожидания между отрисовками последовательных кадров
-    z = 1/60
+    z = 1/144
     # Восстановление переменных жизни целей
     t1.live = 1
     t2.live = 1
