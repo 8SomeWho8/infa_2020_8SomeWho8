@@ -148,7 +148,7 @@ class ball():
         Returns:
             Возвращает True в случае столкновения мяча и цели. В противном случае возвращает False.
         """
-        if ((self.x - obj.x)**2 + (self.y - obj.y)**2)**0.5 <= self.r + obj.r:  # Условие сближения центров
+        if ((self.x - obj.x) ** 2 + (self.y - obj.y) ** 2) ** 0.5 <= self.r + obj.r:  # Условие сближения центров
             # шарика и цели на расстояние, меньшее суммы их радиусов
             return True
         else:
@@ -182,10 +182,10 @@ class gun():
         self.left_wheel_colour = choice(['red', '#ff7f50', 'blue', 'green', '#b666d2',
                                          'yellow', 'cyan', '#ffbf00', '#711919'])
         self.barrel = canv.create_line(self.x, self.y,
-                                       self.x + 25 * math.cos(math.pi/4), self.y + 25 * math.sin(math.pi/4),
+                                       self.x + 25 * math.cos(math.pi / 4), self.y + 25 * math.sin(math.pi / 4),
                                        width=7)
         self.body_colour = choice(['red', '#ff7f50', 'blue', 'green', '#b666d2',
-                                          'yellow', 'cyan', '#ffbf00', '#711919'])
+                                   'yellow', 'cyan', '#ffbf00', '#711919'])
         self.body = canv.create_rectangle(self.x - self.body_length / 2, self.y - 2,
                                           self.x + self.body_length / 2, self.y + self.body_height,
                                           fill=self.body_colour)
@@ -234,19 +234,19 @@ class gun():
         self.f2_on = 0  # Окончание подготовки к выстрелу
         self.f2_power = 10  # Восстановление начальной силы выстрела
 
-    def targetting(self, event=0):
+    def targetting(self, mouse_x, mouse_y):
         """Прицеливание. Зависит от положения мыши."""
-        if event:  # Вычисление угла наклона пушки к вертикали
-            if (event.x - self.x) > 0 and (event.y - self.y < -0.3 * (event.x - self.x)):
-                self.an = math.atan((event.y - self.y) / (event.x - self.x))
-            elif (event.x - self.x) > 0 and (event.y - self.y >= -0.3 * (event.x - self.x)):
-                self.an = math.atan(-0.3)
-            elif (event.x - self.x) < 0 and (event.y - self.y < 0.3 * (event.x - self.x)):
-                self.an = math.pi + math.atan((event.y - self.y) / (event.x - self.x))
-            elif (event.x - self.x) < 0 and (event.y - self.y >= 0.3 * (event.x - self.x)):
-                self.an = math.pi + math.atan(0.3)
-            elif (event.x == self.x) and self.y >= event.y:
-                self.an = -math.pi/2
+        # Вычисление угла наклона пушки к вертикали
+        if (mouse_x - self.x) > 0 and (mouse_y - self.y < -0.3 * (mouse_x - self.x)):
+            self.an = math.atan((mouse_y - self.y) / (mouse_x - self.x))
+        elif (mouse_x - self.x) > 0 and (mouse_y - self.y >= -0.3 * (mouse_x - self.x)):
+            self.an = math.atan(-0.3)
+        elif (mouse_x - self.x) < 0 and (mouse_y - self.y < 0.3 * (mouse_x - self.x)):
+            self.an = math.pi + math.atan((mouse_y - self.y) / (mouse_x - self.x))
+        elif (mouse_x - self.x) < 0 and (mouse_y - self.y >= 0.3 * (mouse_x - self.x)):
+            self.an = math.pi + math.atan(0.3)
+        elif (mouse_x == self.x) and self.y >= mouse_y:
+            self.an = -math.pi / 2
         if self.f2_on:  # Рисование оранжевой пушки, если идёт подготовка к выстрелу
             canv.itemconfig(self.barrel, fill='orange')
         else:  # Рисование чёрной пушки в обратном случае
@@ -340,6 +340,16 @@ class gun():
         )
 
 
+class mouse_cords():
+    def __init__(self):
+        self.x = 0
+        self.y = 0
+
+    def new_cords(self, event):
+        self.x = event.x
+        self.y = event.y
+
+
 # Создание двух экземпляров класса target
 t1 = target()
 t2 = target()
@@ -356,18 +366,15 @@ canv.itemconfig(id_points, text=points)
 # Создание глобального массива с "живыми" шариками
 balls = []
 
-
-def MouseCords(event):
-    return (event.x, event.y)
-
+mc = mouse_cords()
 
 def new_game():
-    global g1, t1, screen1, balls, bullet, points
+    global g1, t1, screen1, balls, bullet, points, mc
     # Задание мишеням случайных координат
     t1.new_target()
     t2.new_target()
     # Поиск координат для второй мишени, чтобы та не пересекалась с первой
-    while ((t1.x - t2.x)**2 + (t1.y - t2.y)**2)**0.5 <= t1.r + t2.r:
+    while ((t1.x - t2.x) ** 2 + (t1.y - t2.y) ** 2) ** 0.5 <= t1.r + t2.r:
         t2.new_target()
     # Обнуление глобальной переменной, отвечающей за количество потраченных шариков
     bullet = 0
@@ -378,17 +385,18 @@ def new_game():
     # Связь отпускания левой кнопки мыши с функцией выстрела
     canv.bind('<ButtonRelease-1>', g1.fire2_end)
     # Связь движения мыши с функцией прицеливания
-    canv.bind('<Motion>', g1.targetting)
+    canv.bind('<Motion>', mc.new_cords)
     # Связь нажатия стрелок на клавиатуре с движением пушки по горизонтали
     canv.bind('<d>', g1.move_right)
     canv.bind('<a>', g1.move_left)
     # Задание переменной, отвечающей за время ожидания между отрисовками последовательных кадров
-    z = 1/144
+    z = 1 / 144
     # Восстановление переменных жизни целей
     t1.live = 1
     t2.live = 1
     # Основной цикл игры, условие прекращения которого - отсутствующие на поле шарики и все поражённые мишени
     while t1.live or t2.live or balls:
+        g1.targetting(mc.x, mc.y)
         for b in balls:  # Действия для всех шариков из массива со всеми "живыми" шариками
             b.move()  # Передвижение шарика за одну единицу времени
             # Проверка столкновения шариков с целями, добавление очков за поражение целей,
@@ -423,9 +431,7 @@ def new_game():
         canv.update()
         # Задержка между кадрами
         time.sleep(z)
-        g1.move_right
-        g1.move_left
-        g1.targetting()
+        g1.targetting(mc.x, mc.y)
         g1.power_up()
     # Стирание текста о количестве потраченных шариков перед новой игрой
     canv.itemconfig(screen1, text='')
