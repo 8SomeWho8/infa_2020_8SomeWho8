@@ -33,31 +33,57 @@ class target():
         canv.coords(self.id, -10, -10, -10, -10)
 
 
-# Дочерний класс класса target, двигающийся по восьмёрке-лисажу, надо добавить дочерний класс отражающейся цели
+# Дочерний класс класса target, двигающийся по восьмёрке-лисажу
 class lissajou_target(target):
     def __init__(self):
+        """
+        Инициализация класса целей, двигающихся по восмьёрке
+        """
         target.__init__(self)
+        # Амплитуды колебания по восьмёрки для разных осей
         self.a_x = 0
         self.a_y = 0
+        # Переменные, хранящие координаты центра восьмёрки
         self.x_0 = self.x
         self.y_0 = self.y
+        # Переменная времени, благодаря которой считается положение цели в конкретный момент
         self.t = 0
+        # Переменная шага дискретизация движения цели
+        self.dt = 0.5
+        # Переменная частоты, с которой колеблется по осям цель
         self.freq = 1
+        # Переменная цвета цели, в данном случае - янтарный
         self.colour = '#ffbf00'
         canv.itemconfig(self.id, fill=self.colour)
 
     def new_target(self, x_min=0, x_max=800, y_min=0, y_max=600):
+        """
+        Создание новой цели
+        :param x_min: нижняя граница размеров экрана по оси x
+        :param x_max: верхняя граница размеров экрана по оси x
+        :param y_min: нижняя граница размеров экрана по оси y
+        :param y_max: верняя граница размеров экрана по оси y
+        :return:
+        """
+        # Задание новых характеристик траектории цели
         self.a_x = rnd(70, 120)
         self.a_y = rnd(70, 120)
         self.r = rnd(5, 50)
         self.x_0 = rnd(x_min + self.r + self.a_x, x_max - self.r - self.a_x)
         self.y_0 = rnd(y_min + self.r + self.a_y, y_max - self.r - self.a_y)
         self.freq = random() * 0.2 + 0.05
+        # Обнуление переменной времени
         self.t = 0
         canv.coords(self.id, self.x_0 - self.r, self.y_0 - self.r, self.x_0 + self.r, self.y_0 + self.y_0)
 
     def move(self):
-        self.t += 0.5
+        """
+        Функция перемещения цели
+        :return:
+        """
+        # Обновление переменной времени
+        self.t += self.dt
+        # Обновление координат цели
         self.x = self.x_0 + self.a_x * math.cos(self.freq * self.t)
         self.y = self.y_0 + self.a_y * math.sin(2 * self.freq * self.t)
         # Обновление координат объекта tkinter
@@ -70,11 +96,14 @@ class lissajou_target(target):
         )
 
 
+# Класс цели, двигающейся равномерно с отражением от границ экрана
 class uniform_moving_target(target):
     def __init__(self):
         target.__init__(self)
+        # Переменные скорости цели по осям
         self.vx = 0
         self.vy = 0
+        # Переменная цвета цели, в данном случае - лаймовый
         self.colour = '#ccff00'
         canv.itemconfig(self.id, fill=self.colour)
 
@@ -214,33 +243,40 @@ class gun():
         self.v = 5
         # Переменная угла наклона пушки к горизонтали(со знаком)
         self.an = 1
-        # Объект "линии" из tkinter
+        # Длина основной части танка
         self.body_length = 40
+        # Высота основной части танка
         self.body_height = 15
+        # Радиус колёс танка
         self.right_wheel_rad = 6
+        self.left_wheel_rad = 6
+        # Случайный цвет колёс танка
         self.right_wheel_colour = choice(['red', '#ff7f50', 'blue', 'green', '#b666d2',
                                           'yellow', 'cyan', '#ffbf00', '#711919'])
-        self.left_wheel_rad = 6
         self.left_wheel_colour = choice(['red', '#ff7f50', 'blue', 'green', '#b666d2',
                                          'yellow', 'cyan', '#ffbf00', '#711919'])
+        # Переменная типа line из tkinter, отвечающая за дуло танка
         self.barrel = canv.create_line(self.x, self.y,
                                        self.x + 25 * math.cos(math.pi / 4), self.y + 25 * math.sin(math.pi / 4),
                                        width=7)
+        # Случайный цвет основной части танка
         self.body_colour = choice(['red', '#ff7f50', 'blue', 'green', '#b666d2',
                                    'yellow', 'cyan', '#ffbf00', '#711919'])
+        # Переменная типа rectangle из tkinter, отвечающая за основную часть танка
         self.body = canv.create_rectangle(self.x - self.body_length / 2, self.y - 2,
                                           self.x + self.body_length / 2, self.y + self.body_height,
                                           fill=self.body_colour)
-        self.left_wheel = canv.create_oval(self.x - self.body_length / 4 - self.right_wheel_rad,
-                                           self.y + self.body_height,
-                                           self.x - self.body_length / 4 + self.right_wheel_rad,
-                                           self.y + self.body_height + 2 * self.right_wheel_rad,
-                                           fill=self.right_wheel_colour)
+        # Переменные типа oval из tkinter, отвечающие за колёса танка
         self.right_wheel = canv.create_oval(self.x + self.body_length / 4 - self.left_wheel_rad,
                                             self.y + self.body_height,
                                             self.x + self.body_length / 4 + self.left_wheel_rad,
                                             self.y + self.body_height + 2 * self.left_wheel_rad,
                                             fill=self.left_wheel_colour)
+        self.left_wheel = canv.create_oval(self.x - self.body_length / 4 - self.right_wheel_rad,
+                                           self.y + self.body_height,
+                                           self.x - self.body_length / 4 + self.right_wheel_rad,
+                                           self.y + self.body_height + 2 * self.right_wheel_rad,
+                                           fill=self.right_wheel_colour)
 
     def fire2_start(self, event=''):  # Начало подготовки к выстрелу, в течении которой f2_power растёт
         self.f2_on = 1
@@ -259,16 +295,21 @@ class gun():
         new_ball.x = self.x
         new_ball.y = self.y
         # Вычисление угла наклона пушки, зависит от положения мыши
+        # +-0.3 - максимальный(и минимальный) тангенс угла наклона пушки, ограничение сделано для "реалистичности"
         if (event.x - self.x) > 0 and (event.y - self.y < -0.3 * (event.x - self.x)):
-            self.an = math.atan((event.y - self.y) / (event.x - self.x))
+            self.an = math.atan((event.y - self.y) / (event.x - self.x))  # Нормальное вычисление угла при положении
+            # мыши, удовлетворяющему ограничению (для положительного смещения по x относительно пушки)
         elif (event.x - self.x) > 0 and (event.y - self.y >= -0.3 * (event.x - self.x)):
-            self.an = math.atan(-0.3)
+            self.an = math.atan(-0.3)  # Предельное значение тангенса при выходе за ограничение
+            # (для положительного смещения по x относительно пушки)
         elif (event.x - self.x) < 0 and (event.y - self.y < 0.3 * (event.x - self.x)):
-            self.an = math.pi + math.atan((event.y - self.y) / (event.x - self.x))
+            self.an = math.pi + math.atan((event.y - self.y) / (event.x - self.x))  # Нормальное вычисление угла при
+            # положении  мыши, удовлетворяющему ограничению (для отрицательного смещения по x относительно пушки)
         elif (event.x - self.x) < 0 and (event.y - self.y >= 0.3 * (event.x - self.x)):
-            self.an = math.pi + math.atan(0.3)
+            self.an = math.pi + math.atan(0.3)  # Предельное значение тангенса при выходе за ограничение
+            # (для отрицательного смещения по x относительно пушки)
         elif (event.x == self.x) and self.y >= event.y:
-            self.an = -math.pi / 2
+            self.an = -math.pi / 2  # задание угла для случая, когда мышь находится ровно над танком
         # Задание начальных скоростей снаряда по осям, пропорционально силе f2_power
         new_ball.vx = self.f2_power * math.cos(self.an)
         new_ball.vy = self.f2_power * math.sin(self.an)
@@ -277,8 +318,8 @@ class gun():
         self.f2_power = 10  # Восстановление начальной силы выстрела
 
     def targetting(self, mouse_x, mouse_y):
-        """Прицеливание. Зависит от положения мыши."""
-        # Вычисление угла наклона пушки к вертикали
+        """Прицеливание. Зависит от положения мыши. Координаты даются функции на вход"""
+        # Вычисление угла наклона пушки к вертикали, аналогично как для функции fire2_end
         if (mouse_x - self.x) > 0 and (mouse_y - self.y < -0.3 * (mouse_x - self.x)):
             self.an = math.atan((mouse_y - self.y) / (mouse_x - self.x))
         elif (mouse_x - self.x) > 0 and (mouse_y - self.y >= -0.3 * (mouse_x - self.x)):
@@ -315,8 +356,10 @@ class gun():
         """
         Передвижение пушки вправо по горизонтали
         """
+        # Условие прекращения движения, если достигнута правая граница экрана
         if self.x < 780:
             self.x += self.v
+        # Обновление координат всех частей танка
         canv.coords(
             self.barrel,
             self.x,
@@ -350,8 +393,10 @@ class gun():
         """
         Передвижение пушки влево по горизонтали
         """
+        # Условие прекращения движения, если достигнта левая граница экрана
         if self.x > 20:
             self.x -= self.v
+        # Обновление координат всех частей танка
         canv.coords(
             self.barrel,
             self.x,
@@ -382,17 +427,22 @@ class gun():
         )
 
 
+# Класс, собственные значения которого - последнее положение мыши при движении,
+# его функция связана с <Motion>
 class mouse_cords():
     def __init__(self):
         self.x = 0
         self.y = 0
 
     def new_cords(self, event):
+        """
+        Функция от движения мыши, обновляет значения self.x и self.y
+        """
         self.x = event.x
         self.y = event.y
 
 
-# Создание двух экземпляров класса target
+# Создание двух экземпляров класса target, подклассов uniform_moving_target и lissajou_target
 t1 = uniform_moving_target()
 t2 = lissajou_target()
 # Создание объекта из tkinter, отвечающего за вывод текста после уничтожения всех мишеней
@@ -407,8 +457,9 @@ id_points = canv.create_text(30, 30, text=points, font='28')
 canv.itemconfig(id_points, text=points)
 # Создание глобального массива с "живыми" шариками
 balls = []
-
+# Объект класса mouse_cords, хранит в себе последние координаты мыши
 mc = mouse_cords()
+
 
 def new_game():
     global g1, t1, screen1, balls, bullet, points, mc
@@ -426,7 +477,7 @@ def new_game():
     canv.bind('<Button-1>', g1.fire2_start)
     # Связь отпускания левой кнопки мыши с функцией выстрела
     canv.bind('<ButtonRelease-1>', g1.fire2_end)
-    # Связь движения мыши с функцией прицеливания
+    # Связь движения мыши с функцией координат мыши объекта mc класса mouse_cords
     canv.bind('<Motion>', mc.new_cords)
     # Связь нажатия стрелок на клавиатуре с движением пушки по горизонтали
     canv.bind('<d>', g1.move_right)
@@ -472,6 +523,7 @@ def new_game():
         canv.update()
         # Задержка между кадрами
         time.sleep(z)
+        # Обновление положения дула танка за кадр
         g1.targetting(mc.x, mc.y)
         g1.power_up()
     # Стирание текста о количестве потраченных шариков перед новой игрой
