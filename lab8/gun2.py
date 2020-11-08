@@ -1,4 +1,5 @@
 from random import randrange as rnd, choice
+from random import random
 import tkinter as tk
 import math
 import time
@@ -22,19 +23,60 @@ class target():
         # Начальные координаты и скорости цели по осям
         self.x = 0
         self.y = 0
-        self.vx = 0
-        self.vy = 0
         # Радиус цели
         self.r = 0
-        # Цвет цели
-        self.color = '#ccff00'
         # Задание характеристик овала с заданными координатами
         canv.coords(self.id, self.x - self.r, self.y - self.r, self.x + self.r, self.y + self.r)
-        canv.itemconfig(self.id, fill=self.color)
 
     def hit(self):
         """Попадание шарика в цель. Она перемещается в невидимую часть экрана"""
         canv.coords(self.id, -10, -10, -10, -10)
+
+
+# Дочерний класс класса target, двигающийся по восьмёрке-лисажу, надо добавить дочерний класс отражающейся цели
+class lissajou_target(target):
+    def __init__(self):
+        target.__init__(self)
+        self.a_x = 0
+        self.a_y = 0
+        self.x_0 = self.x
+        self.y_0 = self.y
+        self.t = 0
+        self.freq = 1
+        self.colour = '#ffbf00'
+        canv.itemconfig(self.id, fill=self.colour)
+
+    def new_target(self, x_min=0, x_max=800, y_min=0, y_max=600):
+        self.a_x = rnd(70, 120)
+        self.a_y = rnd(70, 120)
+        self.r = rnd(5, 50)
+        self.x_0 = rnd(x_min + self.r + self.a_x, x_max - self.r - self.a_x)
+        self.y_0 = rnd(y_min + self.r + self.a_y, y_max - self.r - self.a_y)
+        self.freq = random() * 0.2 + 0.05
+        self.t = 0
+        canv.coords(self.id, self.x_0 - self.r, self.y_0 - self.r, self.x_0 + self.r, self.y_0 + self.y_0)
+
+    def move(self):
+        self.t += 0.5
+        self.x = self.x_0 + self.a_x * math.cos(self.freq * self.t)
+        self.y = self.y_0 + self.a_y * math.sin(2 * self.freq * self.t)
+        # Обновление координат объекта tkinter
+        canv.coords(
+            self.id,
+            self.x - self.r,
+            self.y - self.r,
+            self.x + self.r,
+            self.y + self.r
+        )
+
+
+class uniform_moving_target(target):
+    def __init__(self):
+        target.__init__(self)
+        self.vx = 0
+        self.vy = 0
+        self.colour = '#ccff00'
+        canv.itemconfig(self.id, fill=self.colour)
 
     def new_target(self, x_min=0, x_max=800, y_min=0, y_max=600):
         """ Инициализация новой цели с новыми случайными координатами, скоростями и радиусом. """
@@ -44,7 +86,6 @@ class target():
         self.vx = rnd(-10, 10)
         self.vy = rnd(-10, 10)
         canv.coords(self.id, self.x - self.r, self.y - self.r, self.x + self.r, self.y + self.r)
-        canv.itemconfig(self.id, fill=self.color)
 
     def move(self):
         """
@@ -74,14 +115,6 @@ class target():
             self.x + self.r,
             self.y + self.r
         )
-
-# Дочерний класс класса target, двигающийся по восьмёрке-лисажу, надо добавить дочерний класс отражающейся цели
-class lissajou_target(target):
-    def __init__(self):
-        target.__init__(self)
-        self.a_x = 0
-        self.a_y = 0
-
 
 
 
@@ -360,8 +393,8 @@ class mouse_cords():
 
 
 # Создание двух экземпляров класса target
-t1 = target()
-t2 = target()
+t1 = uniform_moving_target()
+t2 = lissajou_target()
 # Создание объекта из tkinter, отвечающего за вывод текста после уничтожения всех мишеней
 screen1 = canv.create_text(400, 300, text='', font='28')
 # Создание экземпляра класса gun
@@ -399,7 +432,7 @@ def new_game():
     canv.bind('<d>', g1.move_right)
     canv.bind('<a>', g1.move_left)
     # Задание переменной, отвечающей за время ожидания между отрисовками последовательных кадров
-    z = 1 / 144
+    z = 1 / 60
     # Восстановление переменных жизни целей
     t1.live = 1
     t2.live = 1
